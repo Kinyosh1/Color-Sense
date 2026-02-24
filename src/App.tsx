@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trophy, Timer, RefreshCw, Eye, EyeOff, Info, Zap, Palette, ChevronRight, Home, Volume2, VolumeX } from 'lucide-react';
+import { Trophy, Timer, RefreshCw, Eye, EyeOff, Info, Zap, Palette, ChevronRight, Home, Volume2, VolumeX, Languages } from 'lucide-react';
 
 // Types
 interface Color {
@@ -26,6 +26,67 @@ interface Particle {
   color: string;
   type: 'correct' | 'wrong' | 'click';
 }
+
+type Language = 'cn' | 'en';
+
+const translations = {
+  cn: {
+    title: 'COLOR',
+    subtitle: 'SENSE',
+    desc: '色彩敏感度挑战 · 艺术生专项',
+    score: '得分',
+    time: '时间',
+    ready: '准备好挑战视觉极限了吗？',
+    instructions: '在 5x5 的网格中找出那个颜色略有不同的色块。随着得分增加，差异会越来越小。',
+    start: '开始挑战',
+    gameOver: '挑战报告',
+    analysis: 'Session Performance Analysis',
+    sensoryScore: '感官得分',
+    level: '辨识等级',
+    tutor: '导师点评',
+    retry: '再次挑战',
+    back: '返回主页',
+    cheatOn: '开启作弊',
+    cheatOff: '关闭作弊',
+    analysisTitle: '色彩差异分析',
+    footer: 'Designed for Visual Precision & Artistic Training',
+    newRecord: '新纪录！',
+    comments: [
+      "“你的视觉感知尚处于萌芽阶段。目前的明度感知阈值较高，容易受到‘同时对比’现象的干扰。建议从大色块写生开始，训练对色彩冷暖的基本判断。”",
+      "“你的色彩敏感度已经初具规模。在基础色相的辨析上表现良好，但在极端明度下的微弱变化仍有提升空间。多观察自然光影下的补色关系会大有裨益。”",
+      "“非常出色的表现！你对色彩的捕捉已经达到了专业艺术生的水准。能够精准识别极低对比度的色彩差异，这在复杂的绘画创作中将是巨大的优势。”",
+      "“惊人的视觉天赋！你对色彩的敏锐度已经跨越了专业门槛，进入了大师级的感知领域。这种对微观色彩变化的掌控力是极少数人才能拥有的天赋。”"
+    ]
+  },
+  en: {
+    title: 'COLOR',
+    subtitle: 'SENSE',
+    desc: 'Color Sensitivity Challenge · Artist Edition',
+    score: 'SCORE',
+    time: 'TIME',
+    ready: 'Ready to test your visual limits?',
+    instructions: 'Find the unique color block in the 5x5 grid. The difference becomes smaller as your score increases.',
+    start: 'START CHALLENGE',
+    gameOver: 'CHALLENGE REPORT',
+    analysis: 'Session Performance Analysis',
+    sensoryScore: 'SENSORY SCORE',
+    level: 'VISUAL LEVEL',
+    tutor: 'TUTOR FEEDBACK',
+    retry: 'TRY AGAIN',
+    back: 'HOME',
+    cheatOn: 'CHEAT ON',
+    cheatOff: 'CHEAT OFF',
+    analysisTitle: 'COLOR ANALYSIS',
+    footer: 'Designed for Visual Precision & Artistic Training',
+    newRecord: 'NEW RECORD!',
+    comments: [
+      "“Your visual perception is in its early stages. Your current lightness threshold is high, and you are easily distracted by simultaneous contrast. Start with large-scale color studies to train your judgment of warm and cool tones.”",
+      "“Your color sensitivity is taking shape. You perform well in basic hue discrimination, but there is room for improvement in subtle variations at extreme lightness. Observing complementary colors in natural light will be beneficial.”",
+      "“Excellent performance! Your color capture has reached the level of a professional art student. Your ability to precisely identify low-contrast differences will be a huge advantage in complex painting.”",
+      "“Incredible visual talent! Your sensitivity has crossed the professional threshold into the realm of master perception. This level of control over microscopic color changes is a rare gift.”"
+    ]
+  }
+};
 
 // Sound Utility
 const playSound = (type: 'correct' | 'wrong' | 'click') => {
@@ -80,6 +141,9 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [shake, setShake] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
+  const [lang, setLang] = useState<Language>('cn');
+
+  const t = translations[lang];
 
   const gridSize = 5; // Fixed 5x5 as requested
 
@@ -193,6 +257,36 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] text-[#1A1F36] font-sans selection:bg-black selection:text-white flex flex-col items-center p-4 md:p-8 overflow-x-hidden">
+      {/* Fixed UI Layer */}
+      <div className="fixed top-4 right-4 z-[110] flex gap-2">
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={(e) => {
+            spawnParticles(e, 'click');
+            setLang(lang === 'cn' ? 'en' : 'cn');
+            triggerSound('click');
+          }}
+          className="p-3 rounded-full bg-white border border-black/5 shadow-md hover:bg-gray-50 transition-colors flex items-center gap-2"
+        >
+          <Languages size={20} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">{lang === 'cn' ? 'EN' : '中文'}</span>
+        </motion.button>
+        
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={(e) => {
+            spawnParticles(e, 'click');
+            setSoundEnabled(!soundEnabled);
+            triggerSound('click');
+          }}
+          className="p-3 rounded-full bg-white border border-black/5 shadow-md hover:bg-gray-50 transition-colors"
+        >
+          {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+        </motion.button>
+      </div>
+
       {/* Particle Layer */}
       <div className="fixed inset-0 pointer-events-none z-[100]">
         <AnimatePresence>
@@ -231,27 +325,15 @@ export default function App() {
 
       {/* Header */}
       <header className="w-full max-w-2xl mb-8 flex flex-col items-center text-center relative">
-        <div className="absolute right-0 top-0">
-          <button 
-            onClick={(e) => {
-              spawnParticles(e, 'click');
-              setSoundEnabled(!soundEnabled);
-              triggerSound('click');
-            }}
-            className="p-3 rounded-full bg-white border border-black/5 shadow-sm hover:bg-gray-50 transition-colors"
-          >
-            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-          </button>
-        </div>
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-6xl font-bold tracking-tighter mb-2"
         >
-          COLOR<span className="italic font-serif font-light">SENSE</span>
+          {t.title}<span className="italic font-serif font-light">{t.subtitle}</span>
         </motion.h1>
         <p className="text-sm uppercase tracking-widest opacity-50 font-medium">
-          色彩敏感度挑战 · 艺术生专项
+          {t.desc}
         </p>
       </header>
 
@@ -265,14 +347,14 @@ export default function App() {
         >
           <div className="flex items-center gap-2 opacity-60">
             <Trophy size={18} />
-            <span className="text-xs font-bold uppercase tracking-wider">得分</span>
+            <span className="text-xs font-bold uppercase tracking-wider">{t.score}</span>
           </div>
           <span className="text-2xl font-mono font-bold">{score}</span>
         </motion.div>
         <div className={`bg-white border border-black/5 rounded-2xl p-4 shadow-sm flex items-center justify-between transition-colors relative ${timeLeft < 5 ? 'text-red-500' : ''}`}>
           <div className="flex items-center gap-2 opacity-60">
             <Timer size={18} />
-            <span className="text-xs font-bold uppercase tracking-wider">时间</span>
+            <span className="text-xs font-bold uppercase tracking-wider">{t.time}</span>
           </div>
           <span className="text-2xl font-mono font-bold">{timeLeft}s</span>
           
@@ -300,29 +382,29 @@ export default function App() {
       >
         <AnimatePresence mode="wait">
           {gameState === 'idle' && (
-            <motion.div 
-              key="idle"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm p-8 text-center"
-            >
-              <div className="mb-6 p-4 rounded-full bg-black/5">
-                <Zap size={48} className="text-black" />
-              </div>
-              <h2 className="text-2xl font-bold mb-4">准备好挑战视觉极限了吗？</h2>
-              <p className="text-sm opacity-60 mb-8 max-w-xs">
-                在 5x5 的网格中找出那个颜色略有不同的色块。随着得分增加，差异会越来越小。
-              </p>
-              <motion.button 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={(e) => startGame(e)}
-                className="w-full py-4 bg-black text-white rounded-xl font-bold uppercase tracking-widest transition-transform"
+              <motion.div 
+                key="idle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm p-8 text-center"
               >
-                开始挑战
-              </motion.button>
-            </motion.div>
+                <div className="mb-6 p-4 rounded-full bg-black/5">
+                  <Zap size={48} className="text-black" />
+                </div>
+                <h2 className="text-2xl font-bold mb-4">{t.ready}</h2>
+                <p className="text-sm opacity-60 mb-8 max-w-xs">
+                  {t.instructions}
+                </p>
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={(e) => startGame(e)}
+                  className="w-full py-4 bg-black text-white rounded-xl font-bold uppercase tracking-widest transition-transform"
+                >
+                  {t.start}
+                </motion.button>
+              </motion.div>
           )}
 
           {gameState === 'gameover' && (
@@ -352,16 +434,16 @@ export default function App() {
                   </div>
                 </motion.div>
 
-                <h2 className="text-3xl font-serif font-black text-[#1A1F36] mb-1 text-center">挑战报告</h2>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-[#1A1F36]/40 font-bold mb-8 text-center">Session Performance Analysis</p>
+                <h2 className="text-3xl font-serif font-black text-[#1A1F36] mb-1 text-center">{t.gameOver}</h2>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-[#1A1F36]/40 font-bold mb-8 text-center">{t.analysis}</p>
 
                 <div className="w-full grid grid-cols-2 gap-4 mb-8">
                   <div className="bg-white border border-black/5 rounded-3xl p-6 shadow-sm flex flex-col items-center text-center">
-                    <span className="text-[10px] font-bold text-[#1A1F36]/40 uppercase tracking-widest mb-2">感官得分</span>
+                    <span className="text-[10px] font-bold text-[#1A1F36]/40 uppercase tracking-widest mb-2">{t.sensoryScore}</span>
                     <span className="text-4xl font-mono font-bold text-[#1A1F36]">{score}</span>
                   </div>
                   <div className="bg-white border border-black/5 rounded-3xl p-6 shadow-sm flex flex-col items-center text-center">
-                    <span className="text-[10px] font-bold text-[#1A1F36]/40 uppercase tracking-widest mb-2">辨识等级</span>
+                    <span className="text-[10px] font-bold text-[#1A1F36]/40 uppercase tracking-widest mb-2">{t.level}</span>
                     <span className="text-4xl font-mono font-bold text-[#1A1F36]">{Math.floor(score / 5) + 1}</span>
                   </div>
                 </div>
@@ -369,13 +451,13 @@ export default function App() {
                 <div className="w-full bg-white/50 rounded-3xl p-6 border border-black/5 mb-8">
                   <div className="flex items-center gap-2 mb-4">
                     <Palette size={20} className="text-violet-500" />
-                    <span className="font-bold text-[#1A1F36]">导师点评</span>
+                    <span className="font-bold text-[#1A1F36]">{t.tutor}</span>
                   </div>
                   <p className="text-sm leading-relaxed text-[#1A1F36]/70 italic">
-                    {score < 10 && "“你的视觉感知尚处于萌芽阶段。目前的明度感知阈值较高，容易受到‘同时对比’现象的干扰。建议从大色块写生开始，训练对色彩冷暖的基本判断。”"}
-                    {score >= 10 && score < 20 && "“你的色彩敏感度已经初具规模。在基础色相的辨析上表现良好，但在极端明度下的微弱变化仍有提升空间。多观察自然光影下的补色关系会大有裨益。”"}
-                    {score >= 20 && score < 35 && "“非常出色的表现！你对色彩的捕捉已经达到了专业艺术生的水准。能够精准识别极低对比度的色彩差异，这在复杂的绘画创作中将是巨大的优势。”"}
-                    {score >= 35 && "“惊人的视觉天赋！你对色彩的敏锐度已经跨越了专业门槛，进入了大师级的感知领域。这种对微观色彩变化的掌控力是极少数人才能拥有的天赋。”"}
+                    {score < 10 && t.comments[0]}
+                    {score >= 10 && score < 20 && t.comments[1]}
+                    {score >= 20 && score < 35 && t.comments[2]}
+                    {score >= 35 && t.comments[3]}
                   </p>
                 </div>
 
@@ -386,7 +468,7 @@ export default function App() {
                     onClick={(e) => startGame(e)}
                     className="w-full py-4 bg-[#1A1F36] text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#2D3359] transition-all shadow-lg shadow-blue-900/10"
                   >
-                    <RefreshCw size={18} /> 再次挑战
+                    <RefreshCw size={18} /> {t.retry}
                   </motion.button>
                   <motion.button 
                     whileHover={{ scale: 1.02 }}
@@ -398,7 +480,7 @@ export default function App() {
                     }}
                     className="w-full py-4 bg-white text-[#1A1F36] border border-black/5 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-gray-50 transition-all"
                   >
-                    返回主页
+                    {t.back}
                   </motion.button>
                 </div>
               </div>
@@ -449,7 +531,7 @@ export default function App() {
             }`}
           >
             {cheatMode ? <EyeOff size={16} /> : <Eye size={16} />}
-            {cheatMode ? '关闭作弊' : '开启作弊'}
+            {cheatMode ? t.cheatOff : t.cheatOn}
           </motion.button>
           
           <motion.button 
@@ -475,7 +557,7 @@ export default function App() {
           >
             <div className="flex items-center gap-2 mb-3 opacity-60">
               <Info size={14} />
-              <span className="text-[10px] font-bold uppercase tracking-widest">色彩差异分析</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest">{t.analysisTitle}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1 flex flex-col gap-1">
@@ -498,7 +580,7 @@ export default function App() {
       {/* Footer */}
       <footer className="mt-auto pt-12 pb-4 text-center">
         <p className="text-[10px] uppercase tracking-[0.2em] opacity-30 font-bold">
-          Designed for Visual Precision & Artistic Training
+          {t.footer}
         </p>
       </footer>
     </div>
